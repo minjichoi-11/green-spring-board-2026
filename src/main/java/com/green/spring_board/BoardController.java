@@ -1,17 +1,16 @@
 package com.green.spring_board;
 
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/board")
+@AllArgsConstructor
+
 public class BoardController {
     private BoardRepository boardRepository;
-
-    public BoardController(BoardRepository boardRepository) {
-        this.boardRepository = boardRepository;
-    }
 
     //* 전체 조회
     @GetMapping
@@ -22,7 +21,11 @@ public class BoardController {
     //* 상세 조회
     @GetMapping ("/{id}")
     public Boards getBoardsDetail(@PathVariable int id) {
-        return boardRepository.findById(id).get();
+        Boards board = boardRepository.findById(id).get();
+        board.setHits(board.getHits() + 1);
+        boardRepository.save(board);
+
+        return board;
 
     }
 
