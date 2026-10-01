@@ -1,12 +1,13 @@
 package com.green.spring_board.controller;
 
+import com.green.spring_board.exceptions.ResourceNotFoundException;
+import com.green.spring_board.exceptions.UserRequestException;
 import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.service.BoardService;
-import com.green.spring_board.entity.Boards;
+import com.green.spring_board.entity.Board;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import java.net.URI;
 import java.util.List;
@@ -14,44 +15,52 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/board")
 @AllArgsConstructor
-
 public class BoardController {
-    private final ResourceUrlProvider resourceUrlProvider;
-    private final BoardService boardService;
 
+    private final BoardService boardService;
 
     //* 전체 조회
     @GetMapping
-    public ResponseEntity<List<Boards>> getBoards() {
+    public ResponseEntity<List<Board>> getBoards() {
         return ResponseEntity.ok(
                 boardService.getAllBoards()
         );
-//        return responseEntity boardRepository.findAll(); <- 데이터만
     }
 
     //* 상세 조회
     @GetMapping ("/{id}")
-    public ResponseEntity<Boards> getBoardsDetail(@PathVariable int id) {
-        Boards board = boardService.getBoard(id);
-        if(board == null) {
+    public ResponseEntity<Board> getBoardsDetail(@PathVariable int id) {
+        try {
+            Board board = boardService.getBoard(id);
+            if (board == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(board);
+        } catch (ResourceNotFoundException e) {
+            // 게시글을 못 찾았을 때 (404)
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            // 위에도 아니면, 무조건 Java 아니면 DB 에러로 서버 에러 (500)
+            return ResponseEntity.internalServerError().build();
         }
-
-        return ResponseEntity.ok(board);
-
     }
 
     //* 삽입
     @PostMapping
     public ResponseEntity<Void> createBoard(@RequestBody BoardCreateRequest boardCreateRequest) {
-        int newBoardId = boardService.createBoard(boardCreateRequest);
-        if (newBoardId == -1) {
+        try {
+            int newBoardId = boardService.createBoard(boardCreateRequest);
+            URI location = URI.create("/api/board/" + newBoardId);
+
+            return ResponseEntity.created(location).build();
+
+        } catch (UserRequestException e) {
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
 
-        URI location = URI.create("/api/board/" + newBoardId);
 
-        return ResponseEntity.created(location).build();
     }
 
     //* 수정
@@ -60,21 +69,29 @@ public class BoardController {
             @PathVariable int id,
             @RequestBody BoardCreateRequest boardCreateRequest
     ){
-        int code = boardService.updateBoard(id, boardCreateRequest);
-        if(code == -1) {
-            return ResponseEntity.notFound().build();
+        try {
+            boardService.updateBoard(id, boardCreateRequest);
+            return ResponseEntity.ok().build(); // 성공 시 반환
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build(); // 예외 발생 시 404 반환
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build(); // 그 외 에러 500 반환
         }
-        return ResponseEntity.ok().build();
     }
 
 
     //* 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBoar(@PathVariable int id) {
-        int code = boardService.deleteBoard(id);
-        if(code == -1) {
+    public ResponseEntity<Void> deleteBoard(@PathVariable int id) {
+
+        try {
+            boardService.deleteBoard(id);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
-        return ResponseEntity.noContent().build();
     }
 }
