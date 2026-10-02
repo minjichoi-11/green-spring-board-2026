@@ -1,14 +1,21 @@
 package com.green.spring_board.service;
 
+import com.green.spring_board.dto.LoginRequest;
+import com.green.spring_board.dto.MyinfoResponse;
 import com.green.spring_board.dto.SignupRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceConflictException;
+import com.green.spring_board.exceptions.ResourceNotFoundException;
+import com.green.spring_board.exceptions.UnauthenticatedException;
 import com.green.spring_board.exceptions.UserRequestException;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -39,4 +46,91 @@ public class UserService {
 
         userRepository.save(user);
     }
+
+    public int login(LoginRequest loginRequest) {
+        //* 1. 이메일이 존재하는지 확인
+        Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
+
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        User user = userOptional.get(); //? 이 이메일의 사용자 정보
+
+        //* 2. 비밀번호가 올바른지 확인
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new UnauthenticatedException("Wrong password");
+        }
+
+//        loginRequest.getPassword(); //? 사용자가 주장하는 비밀번호
+//        user.getPassword(); //? DB에 저장된 비밀번호
+
+        //* 3. 로그인 성공
+        return user.getId();
+    }
+
+    public MyinfoResponse getUserInfo(int userId) {
+        //* 유저 아이디로 DB 조회. 변수 이름: userOptional
+        Optional<User> userOptional = userRepository.findById(userId);
+        // DB에 가서 Optional을 하나 가져옴
+        // 여기에는 유정 정보가 들어 있을 수도, 주소를 잘못 찾았다면 빈 상자일 수도 있다.
+        // 그래서 아직은 유저 안의 정보를 바로 쓸 수 없다.
+
+        //* 존재하지 않는 유저라면 예외 발생
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        //? 실제 유저 객체를 꺼냄
+        User user = userOptional.get();
+
+        //* 3. 유저 아이디로 DB 조회함
+
+
+        //* 4. DB에서 이 유저의 닉네임과 이메일을 받아옴(실제 유저 객체를 꺼냄)
+        String email = user.getEmail();
+        String nickname = user.getNickname();
+
+        //* 5. DB에서 가져온 유저의 이메일과 닉네임을 응답 객체(DTO)에 담아서 돌려줌.
+        MyinfoResponse myinfoResponse = new MyinfoResponse();
+        myinfoResponse.setEmail(email);
+        myinfoResponse.setNickname(nickname);
+
+        return myinfoResponse;
+    }
+
+    public MyinfoResponse updateInfo(int userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        //* 존재하지 않는 유저라면 예외 발생
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        //? 실제 유저 객체를 꺼냄
+        User user = userOptional.get();
+
+        //* [핵심] 사용자가 보낸 이메일 값이 null이 아니고 공백이 아닐 때만 덮어쓴다.
+        // 이메일
+        if (myinfoResponse.getEmail() != null || !myinfoResponse.getEmail().isBlank()) {
+            user.setEmail(myinfoResponse.getEmail());
+        }
+
+        // 닉네임 체크
+        if (myinfoResponse.getNickname() != null || !myinfoResponse.getNickname().isBlank()) {
+            user.setNickname(myinfoResponse.getNickname());
+        }
+
+        userRepository.save(user);
+
+    }
+
+    public void deleteUser(int userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        User user = userOptional.get();
+        userRepository
+    }
+
 }

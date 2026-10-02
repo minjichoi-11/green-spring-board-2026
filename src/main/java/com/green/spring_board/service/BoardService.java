@@ -56,7 +56,7 @@ public class BoardService {
         return savedBoard.getId();
     }
 
-    // 수정
+    //? 수정
     public void updateBoard(int id, BoardCreateRequest boardCreateRequest) {
         Optional<Board> optionalBoards = boardRepository.findById(id);
         if(optionalBoards.isEmpty()) {
