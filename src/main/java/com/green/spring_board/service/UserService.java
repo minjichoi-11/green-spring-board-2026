@@ -1,7 +1,7 @@
 package com.green.spring_board.service;
 
 import com.green.spring_board.dto.LoginRequest;
-import com.green.spring_board.dto.MyinfoResponse;
+import com.green.spring_board.dto.MyInfoResponse;
 import com.green.spring_board.dto.SignupRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceConflictException;
@@ -61,14 +61,11 @@ public class UserService {
             throw new UnauthenticatedException("Wrong password");
         }
 
-//        loginRequest.getPassword(); //? 사용자가 주장하는 비밀번호
-//        user.getPassword(); //? DB에 저장된 비밀번호
-
         //* 3. 로그인 성공
         return user.getId();
     }
 
-    public MyinfoResponse getUserInfo(int userId) {
+    public MyInfoResponse getUserInfo(int userId) {
         //* 유저 아이디로 DB 조회. 변수 이름: userOptional
         Optional<User> userOptional = userRepository.findById(userId);
         // DB에 가서 Optional을 하나 가져옴
@@ -85,20 +82,19 @@ public class UserService {
 
         //* 3. 유저 아이디로 DB 조회함
 
-
         //* 4. DB에서 이 유저의 닉네임과 이메일을 받아옴(실제 유저 객체를 꺼냄)
         String email = user.getEmail();
         String nickname = user.getNickname();
 
         //* 5. DB에서 가져온 유저의 이메일과 닉네임을 응답 객체(DTO)에 담아서 돌려줌.
-        MyinfoResponse myinfoResponse = new MyinfoResponse();
+        MyInfoResponse myinfoResponse = new MyInfoResponse();
         myinfoResponse.setEmail(email);
         myinfoResponse.setNickname(nickname);
 
         return myinfoResponse;
     }
 
-    public MyinfoResponse updateInfo(int userId) {
+    public void updateUserInfo(int userId, MyInfoResponse myInfoResponse) {
         Optional<User> userOptional = userRepository.findById(userId);
 
         //* 존재하지 않는 유저라면 예외 발생
@@ -111,17 +107,19 @@ public class UserService {
 
         //* [핵심] 사용자가 보낸 이메일 값이 null이 아니고 공백이 아닐 때만 덮어쓴다.
         // 이메일
-        if (myinfoResponse.getEmail() != null || !myinfoResponse.getEmail().isBlank()) {
-            user.setEmail(myinfoResponse.getEmail());
+        if(myInfoResponse.getEmail()!=null
+                && !myInfoResponse.getEmail().isBlank()
+                && !myInfoResponse.getEmail().equals(user.getEmail())
+        ){
+            user.setEmail(myInfoResponse.getEmail());
         }
 
         // 닉네임 체크
-        if (myinfoResponse.getNickname() != null || !myinfoResponse.getNickname().isBlank()) {
-            user.setNickname(myinfoResponse.getNickname());
+        if(myInfoResponse.getNickname()!=null && !myInfoResponse.getNickname().isBlank()
+        ) {
+            user.setNickname(myInfoResponse.getNickname());
         }
-
         userRepository.save(user);
-
     }
 
     public void deleteUser(int userId) {
@@ -130,7 +128,7 @@ public class UserService {
             throw new ResourceNotFoundException("User not found");
         }
         User user = userOptional.get();
-        userRepository
+        userRepository.delete(user);
     }
 
 }

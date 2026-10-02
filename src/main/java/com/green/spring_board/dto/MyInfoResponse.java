@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 
-public class MyinfoResponse {
+public class MyInfoResponse {
     private String email;
     private String nickname;
 }
