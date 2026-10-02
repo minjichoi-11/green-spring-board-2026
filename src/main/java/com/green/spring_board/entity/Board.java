@@ -29,9 +29,9 @@ public class Board {
     @Column(nullable = false)
     private int hits;
 
-    @Column(nullable = false)
+    @Column(nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdDatetime;
 
-    @Column(nullable = false)
+    @Column(nullable = false, insertable = false, updatable = false)
     private LocalDateTime updatedDatetime;
 }
