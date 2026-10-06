@@ -27,24 +27,20 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/user")
 @AllArgsConstructor
+
 public class UserController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final BoardService boardService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(@RequestBody SignupRequest signupRequest) {
-        try{
-            userService.signup(signupRequest);
-            return ResponseEntity.ok().build();
-        } catch (ResourceConflictException e){
-            return ResponseEntity.status(409).build();
-        } catch (UserRequestException e){
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e){
-            return ResponseEntity.internalServerError().build();
+    public ResponseEntity<Void> signup(
+            @Valid @RequestBody SignupRequest signupRequest,
+            HttpServletRequest httpServletRequest
+    ) {
+        userService.signup(signupRequest); // 실패하면 서비스에서 예외를 던짐.
+        return ResponseEntity.ok().build();
         }
-    }
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(
@@ -52,26 +48,17 @@ public class UserController {
             HttpServletRequest httpServletRequest
     ){
         //* DTO Vaild
-        try{
+
             int userId = userService.login(loginRequest);
             HttpSession session = httpServletRequest.getSession();
             httpServletRequest.changeSessionId();
             session.setAttribute("userId", userId);
             return ResponseEntity.ok().build();
-
-        }catch (ResourceNotFoundException e){
-            return ResponseEntity.notFound().build();
-        }catch (UnauthenticatedException e){
-            return ResponseEntity.status(401).build();
-        }catch (Exception e){
-            return ResponseEntity.internalServerError().build();
-        }
     }
 
     @GetMapping("/me")
     public ResponseEntity<MyInfoResponse> getCurrentUser(
-            HttpServletRequest httpServletRequest,
-            @Valid @RequestBody UserUpdateRequest userUpdateRequest
+            HttpServletRequest httpServletRequest
     ){
         // 1. 이 사람의 세션을 가져옴
         HttpSession session = httpServletRequest.getSession(false);
@@ -104,14 +91,14 @@ public class UserController {
     @PatchMapping
     public ResponseEntity<Void> updateUserInfo(
             HttpServletRequest request,
-            @Valid @RequestBody MyInfoResponse myInfoResponse
+            @Valid @RequestBody UserUpdateRequest userUpdateRequest
     ){
         HttpSession session = request.getSession(false);
         if(session == null || session.getAttribute("userId") == null) {
             return ResponseEntity.status(401).build();
         }
         int userId = (int) session.getAttribute("userId");
-        userService.updateUserInfo(userId, myInfoResponse);
+        userService.updateUserInfo(userId, userUpdateRequest);
         return ResponseEntity.ok().build();
     }
 
