@@ -1,6 +1,7 @@
 package com.green.spring_board.service;
 
 import com.green.spring_board.dto.BoardResponse;
+import com.green.spring_board.dto.BoardUpdateRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
@@ -9,9 +10,7 @@ import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.repository.BoardRepository;
 import com.green.spring_board.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -109,10 +108,10 @@ public class BoardService {
     }
 
     //? 수정
-    public void updateBoard(int id, BoardCreateRequest boardCreateRequest) {
+    public void updateBoard(int id, BoardUpdateRequest boardCreateRequest) {
         Optional<Board> optionalBoards = boardRepository.findById(id);
         if(optionalBoards.isEmpty()) {
-            // 게시글을 못 찾은 경우
+            //? 게시글을 못 찾은 경우
             throw new ResourceNotFoundException("게시글을 찾을 수 없습니다.");
         }
         Board board = optionalBoards.get();

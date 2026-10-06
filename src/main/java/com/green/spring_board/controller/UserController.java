@@ -3,6 +3,7 @@ package com.green.spring_board.controller;
 import com.green.spring_board.dto.LoginRequest;
 import com.green.spring_board.dto.MyInfoResponse;
 import com.green.spring_board.dto.SignupRequest;
+import com.green.spring_board.dto.UserUpdateRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
@@ -13,6 +14,7 @@ import com.green.spring_board.service.BoardService;
 import com.green.spring_board.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -46,9 +48,10 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(
-            @RequestBody LoginRequest loginRequest,
+            @Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest httpServletRequest
     ){
+        //* DTO Vaild
         try{
             int userId = userService.login(loginRequest);
             HttpSession session = httpServletRequest.getSession();
@@ -67,7 +70,8 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<MyInfoResponse> getCurrentUser(
-            HttpServletRequest httpServletRequest
+            HttpServletRequest httpServletRequest,
+            @Valid @RequestBody UserUpdateRequest userUpdateRequest
     ){
         // 1. 이 사람의 세션을 가져옴
         HttpSession session = httpServletRequest.getSession(false);
@@ -100,7 +104,7 @@ public class UserController {
     @PatchMapping
     public ResponseEntity<Void> updateUserInfo(
             HttpServletRequest request,
-            @RequestBody MyInfoResponse myInfoResponse
+            @Valid @RequestBody MyInfoResponse myInfoResponse
     ){
         HttpSession session = request.getSession(false);
         if(session == null || session.getAttribute("userId") == null) {
