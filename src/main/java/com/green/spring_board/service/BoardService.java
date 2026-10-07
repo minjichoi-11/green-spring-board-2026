@@ -2,6 +2,7 @@ package com.green.spring_board.service;
 
 import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
+import com.green.spring_board.dto.LikeDetailResponse;
 import com.green.spring_board.entity.Like;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.AuthorizationFailureException;
@@ -49,7 +50,7 @@ public class BoardService {
                             board.getUser().getNickname(),
                             board.getCreatedDatetime(),
                             board.getUpdatedDatetime()
-                            
+
                     )
             );
         }
@@ -223,6 +224,23 @@ public class BoardService {
             boardRepository.save(board);
         }
 
+    }
+
+    public LikeDetailResponse getLikeDetail(int id) {
+
+        //* 1. 이 게시글의 좋아요 누른 유저 정보들을 Like 테이블에서 싹 가져옴
+        List<Like> likes = likeRepository.findByBoardId(id);
+
+        //* 2. 유저 닉네임을 하나하나 뽑아서, LikeDetailResponse에 집어넣음
+        LikeDetailResponse likeDetailResponse = new LikeDetailResponse();
+        List<String> nicknames = new ArrayList<>();
+        for(Like like : likes) {
+            nicknames.add(like.getUser().getNickname());
+        }
+        likeDetailResponse.setLikeUserNames(nicknames);
+
+        //* 3. 끝
+        return likeDetailResponse;
     }
 
 }
