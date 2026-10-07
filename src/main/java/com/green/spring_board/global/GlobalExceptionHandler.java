@@ -5,6 +5,7 @@ import com.green.spring_board.exceptions.InvalidStateException;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import java.util.List;
  */
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     //? @ExceptionHandler(예외 클래스)
@@ -37,18 +39,23 @@ public class GlobalExceptionHandler {
     //* 요청한 데이터, 있어야 할 데이터가 없을 때 공통 처리
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handlerNotFound(ResourceNotFoundException e) {
+        log.error(e.getMessage(), e);
+        log.info("안녕하세요");
+        log.warn("경고 경고");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
     }
 
     //* 인증 정보가 없거나 적절하지 않을 때 공통 처리
     @ExceptionHandler(UnauthenticatedException.class)
     public ResponseEntity<ApiResponse<Void>> handlerNotFound(UnauthenticatedException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail(e.getMessage())); // 로그인하지 않은 사용자가 접근했을 때 401을 돌려준다.
     }
 
     //* Validator 등 입력 검증 과정에서 문제 발생 시 공통 처리
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationError(MethodArgumentNotValidException e) {
+        log.error(e.getMessage(), e);
         String resultMessage = "";
         List<FieldError> errors = e.getBindingResult().getFieldErrors();
         for (FieldError error : errors) {
@@ -64,6 +71,7 @@ public class GlobalExceptionHandler {
     //* 존재하지 않는 외래키를 이용해 데이터 생성 시도 등 문제 상황 공통 처리
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataConflict(DataIntegrityViolationException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail("종료되거나 저장할 수 없는 데이터입니다."));
     }
@@ -71,12 +79,14 @@ public class GlobalExceptionHandler {
     //* 세션 로그인 방식 이메일 중복 방지
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ApiResponse<Void>> handleConflict(ResourceConflictException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail(e.getMessage()));
     }
 
     //* 이 외의 예외들은 모두 여기서 공통 처리(500)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.fail("서버에서 오류가 발생했습니다."));
     }
@@ -85,6 +95,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleForbidden(
             AuthenticationException e
     ) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.fail(e.getMessage()));
     }
@@ -93,6 +104,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(
             InvalidStateException e
     ) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(e.getMessage()));
 

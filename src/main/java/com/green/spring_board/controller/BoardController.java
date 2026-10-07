@@ -3,17 +3,13 @@ package com.green.spring_board.controller;
 import com.green.spring_board.dto.ApiResponse;
 import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
-import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
-import com.green.spring_board.exceptions.UserRequestException;
 import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.service.BoardService;
-import com.green.spring_board.entity.Board;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +36,24 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardResponse>> getBoardsDetail(@PathVariable int id) {
        BoardResponse board = boardService.getBoard(id);
             return ResponseEntity.ok(ApiResponse.ok(board));
+    }
+
+    //* 내 글 조회
+    @GetMapping ("/me")
+    public ResponseEntity<ApiResponse<List<BoardResponse>>> getMyBoard(
+            HttpServletRequest httpServletRequest
+    ) {
+        HttpSession session = httpServletRequest.getSession(false);
+
+        if (session == null || session.getAttribute("userId") == null) {
+            throw new UnauthenticatedException("로그인이 필요합니다.");
+        }
+
+        int userId = (int) session.getAttribute("userId");
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(boardService.getMyBoards(userId))
+        );
     }
 
     //* 삽입
@@ -75,7 +89,9 @@ public class BoardController {
         if (session == null || session.getAttribute("userId") == null) {
             throw new UnauthenticatedException("로그인이 필요합니다.");
         }
-        boardService.updateBoard(id, boardUpdateRequest);
+
+        int userId = (int) session.getAttribute("userId");
+        boardService.updateBoard(id, boardUpdateRequest, userId);
         return ResponseEntity.ok(ApiResponse.ok());
 
     }
@@ -100,8 +116,8 @@ public class BoardController {
         //* 삭제 성공 시 응답 방법 2.
         //* 204(No Content) + No Body
 
-        boardService.deleteBoard(id);
-        return ResponseEntity
-                .ok(ApiResponse.ok());
+        int userId = (int) session.getAttribute("userId");
+        boardService.deleteBoard(id, userId);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }

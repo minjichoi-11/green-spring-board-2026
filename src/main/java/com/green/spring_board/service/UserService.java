@@ -5,10 +5,7 @@ import com.green.spring_board.dto.MyInfoResponse;
 import com.green.spring_board.dto.SignupRequest;
 import com.green.spring_board.dto.UserUpdateRequest;
 import com.green.spring_board.entity.User;
-import com.green.spring_board.exceptions.ResourceConflictException;
-import com.green.spring_board.exceptions.ResourceNotFoundException;
-import com.green.spring_board.exceptions.UnauthenticatedException;
-import com.green.spring_board.exceptions.UserRequestException;
+import com.green.spring_board.exceptions.*;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -108,7 +105,7 @@ public class UserService {
 
         //* [핵심] 사용자가 보낸 이메일 값이 null이 아니고 공백이 아닐 때만 덮어쓴다.
         // 이메일
-        if(userUpdateRequest.getEmail()!=null
+        if(userUpdateRequest.getEmail() != null
                 && !userUpdateRequest.getEmail().isBlank()
                 && !userUpdateRequest.getEmail().equals(user.getEmail())
         ){
@@ -116,7 +113,7 @@ public class UserService {
         }
 
         // 닉네임 체크
-        if(userUpdateRequest.getNickname()!=null && !userUpdateRequest.getNickname().isBlank()
+        if(userUpdateRequest.getNickname() != null && !userUpdateRequest.getNickname().isBlank()
         ) {
             user.setNickname(userUpdateRequest.getNickname());
         }
@@ -129,6 +126,10 @@ public class UserService {
             throw new ResourceNotFoundException("User not found");
         }
         User user = userOptional.get();
+
+        if (user.getId() != userId) {
+            throw new AuthorizationFailureException("본인만 탈퇴할 수 있습니다.");
+        }
         userRepository.delete(user);
     }
 
