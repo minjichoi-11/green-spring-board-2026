@@ -9,12 +9,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table
+@Table(name = "likes")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +24,10 @@ public class Like {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
     @Column(nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdDatetime;
+
 }

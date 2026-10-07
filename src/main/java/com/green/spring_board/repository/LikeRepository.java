@@ -8,8 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Integer> {
-    //* SELECT *
-    //* FROM likes
-    //* WHERE user_id=3 AND board_id=9;
-    Optional<Like> findByUserIdAndBoardId(int user_id, int board_id);
+    Optional<Like> findByUserIdAndBoardId(int userId, int boardId);
 }

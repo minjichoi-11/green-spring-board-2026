@@ -204,10 +204,18 @@ public class BoardService {
             like.setUser(user);
             like.setBoard(board);
             likeRepository.save(like);
+
+            // 좋아요 증감
+            board.setLikeCount(board.getLikeCount() + 1);
+            boardRepository.save(board);
+
         } else  {
             // 있으면 좋아요 삭제
             Like like = likeOptional.get();
             likeRepository.deleteById(like.getId());
+
+            board.setLikeCount(board.getLikeCount() - 1);
+            boardRepository.save(board);
         }
 
     }
