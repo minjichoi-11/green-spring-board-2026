@@ -30,7 +30,8 @@ public class BoardService {
     private LikeRepository likeRepository;
 
     //* 전체 조회
-    public List<BoardResponse> getAllBoards() {
+    public List<BoardResponse> getAllBoards(int userId) {
+        //* List<Board> -> List<BoardResponse> 형태로 변환
         List<Board> boards = boardRepository.findAll();
 
         //* 1. List<BoardResponse> 형태의 빈 리스트 생성
@@ -45,27 +46,20 @@ public class BoardService {
                             board.getTitle(),
                             board.getContent(),
                             board.getHits(),
-                            board.getUser().getId(),
                             board.getLikeCount(),
+                            (userId == -1) ? false : likeRepository.existsByUserIdAndBoardId(userId, board.getId()),
+                            board.getUser().getId(),
                             board.getUser().getNickname(),
                             board.getCreatedDatetime(),
                             board.getUpdatedDatetime()
-
                     )
             );
         }
         return boardResponses;
-
-        //* List<Board> -> List<BoardResponse> 형태로 변환
-
-        //* 1. List<BoardResponse> 형태의 빈 리스트 생성
-        //* 2. Board 개수만큼 반복하며 new BoardResponse 생성
-        //* 3. 1번에서 만든 리스트에 추가
-
     }
 
     //* 상세 조회
-    public BoardResponse getBoard(int id) {
+    public BoardResponse getBoard(int id, int userId) {
         Optional<Board> optionalBoard = boardRepository.findById(id);
         if(optionalBoard.isEmpty()) {
             // 요청한 게시글을 찾지 못한 경우
@@ -83,6 +77,8 @@ public class BoardService {
                         board.getContent(),
                         board.getHits(),
                         board.getLikeCount(),
+                        // 지금 보드 id, 요청자의 user 콤보가 like 테이블에 존재하는지 확인
+                        (userId == -1) ? false : likeRepository.existsByUserIdAndBoardId(userId, board.getId()),
                         board.getUser().getId(),
                         board.getUser().getNickname(),
                         board.getCreatedDatetime(),
@@ -107,6 +103,7 @@ public class BoardService {
                             board.getContent(),
                             board.getHits(),
                             board.getLikeCount(),
+                            likeRepository.existsByUserIdAndBoardId(userId, board.getId()),
                             board.getUser().getId(),
                             board.getUser().getNickname(),
                             board.getCreatedDatetime(),
@@ -119,18 +116,9 @@ public class BoardService {
 
     //* 삽입
     public int createBoard(BoardCreateRequest boardCreateRequest, Integer userId) {
-
-        if(boardCreateRequest.getTitle() == null || boardCreateRequest.getTitle().isBlank()){
-            // 사용자가 값을 잘못 입력한 경우
-            throw new UserRequestException("잘못된 입력값 입니다.");
-        }
-        if(boardCreateRequest.getContent() == null || boardCreateRequest.getContent().isBlank()){
-            // 사용자가 값을 잘못 입력한 경우
-            throw new UserRequestException("잘못된 입력값 입니다.");
-        }
-
         //* userId 유효성 체크 (해당 userId의 유저가 정상적으로 존재하는지)
         //* TODO :: 이후 삭제/탈퇴 유저에 대한 검증도 추가 필요
+
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new UnauthenticatedException("로그인한 사용자를 찾을 수 없습니다.");
@@ -144,6 +132,7 @@ public class BoardService {
         Board savedBoard = boardRepository.save(board);
 
         return savedBoard.getId();
+
     }
 
     //? 수정
@@ -157,7 +146,7 @@ public class BoardService {
 
         // 요청자의 user id를 알 수 없음.
         // 요청자의 user id가 같은지 다른지 확인
-        board.getUser().getId();
+//        board.getUser().getId();
 
         //* 작성자와 요청자 동일 여부 확인
         if (board.getUser().getId() != userId) {
