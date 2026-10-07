@@ -45,9 +45,11 @@ public class BoardService {
                             board.getContent(),
                             board.getHits(),
                             board.getUser().getId(),
+                            board.getLikeCount(),
                             board.getUser().getNickname(),
                             board.getCreatedDatetime(),
                             board.getUpdatedDatetime()
+                            
                     )
             );
         }
@@ -79,10 +81,12 @@ public class BoardService {
                         board.getTitle(),
                         board.getContent(),
                         board.getHits(),
+                        board.getLikeCount(),
                         board.getUser().getId(),
                         board.getUser().getNickname(),
                         board.getCreatedDatetime(),
                         board.getUpdatedDatetime()
+
                 );
     }
 
@@ -101,6 +105,7 @@ public class BoardService {
                             board.getTitle(),
                             board.getContent(),
                             board.getHits(),
+                            board.getLikeCount(),
                             board.getUser().getId(),
                             board.getUser().getNickname(),
                             board.getCreatedDatetime(),
