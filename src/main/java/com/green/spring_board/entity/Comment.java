@@ -20,7 +20,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable =  false, length = 500)
+    @Column(nullable =  false)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY) // DB의 board_id 외래키와 매핑
