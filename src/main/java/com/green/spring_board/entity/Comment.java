@@ -31,7 +31,10 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false) // updatable = false -> 생성 일시의 무결성 유지
+    @Column(nullable = false, insertable = false, updatable = false) // updatable = false -> 생성 일시의 무결성 유지
     private LocalDateTime createdDatetime;
+
+    @Column(nullable = false)
+    private boolean isDeleted;
 
 }

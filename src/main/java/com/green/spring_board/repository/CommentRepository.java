@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CommentRepository extends CrudRepository<Comment, Integer> {
         //* 특정 게시글에 달린 모든 댓글 목록 조회
-        List<Comment> findByBoardId(int boardId);
+        List<Comment> findByBoardIdAndIsDeletedFalse(int boardId);
 
 //    //* 특정 회원이 작성한 모든 댓글 목록 조회
 //    List<Comment> findByUserId(int userId);

@@ -61,7 +61,7 @@ public class CommentService {
         }
         // 댓글은 가져왔는데, 이걸 이제 CommentResponse로 변환
 
-        List<Comment> comments = commentRepository.findByBoardId(boardId);
+        List<Comment> comments = commentRepository.findByBoardIdAndIsDeletedFalse(boardId);
         List<CommentResponse> commentResponses = new ArrayList<>();
         for(Comment comment : comments){
             CommentResponse commentResponse = new CommentResponse();
@@ -69,7 +69,7 @@ public class CommentService {
             commentResponse.setCommentId(comment.getId());
             commentResponse.setContent(comment.getContent());
             commentResponse.setNickname(comment.getUser().getNickname());
-            commentResponse.setCommentDate(commentResponse.getCommentDate());
+            commentResponse.setCommentDate(comment.getCreatedDatetime());
 
             commentResponses.add(commentResponse);
         }
@@ -90,6 +90,10 @@ public class CommentService {
         }
         //? 데이터가 있으면 댓글 꺼내기
         Comment comment = commentOptional.get();
+
+        if (comment.isDeleted()) {
+            throw new ResourceNotFoundException("삭제된 댓글입니다.");
+        }
 
         //? 댓글 작성자와 수정을 요청한 유저가 일치하는지
         if (comment.getUser().getId() != userId) {
@@ -118,10 +122,19 @@ public class CommentService {
         //? 데이터가 있으면 댓글 꺼내기
         Comment comment = commentOptional.get();
 
-        if (comment.getUser().getId() == userId) {
+        if (comment.getUser().getId() != userId) {
             throw new AuthorizationFailureException("삭제할 권한이 없습니다.");
         }
-        commentRepository.delete(comment);
+
+        //? 이미 삭제된 댓글 재삭제 방어
+        if (comment.isDeleted()) {
+            throw new ResourceNotFoundException("이미 삭제된 댓글입니다.");
         }
+
+        comment.setDeleted(true);
+        commentRepository.save(comment);
+        }
+
+
     }
 

@@ -48,7 +48,7 @@ public class BoardService {
 
         } //exception 던지기
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Board> boards = boardRepository.findAll(pageable);
+        Page<Board> boards = boardRepository.findByIsDeletedFalse(pageable);
 
 
         List<BoardResponse> boardResponses = new ArrayList<>();
@@ -83,6 +83,10 @@ public class BoardService {
         }
         Board board = optionalBoard.get();
 
+        if (board.isDeleted()) {
+            throw new ResourceNotFoundException("삭제된 게시글입니다.");
+        }
+
         User user = board.getUser();
         System.out.println(user.getNickname()); //* 작성자 닉네임 출력
         board.setHits(board.getHits() + 1);
@@ -105,7 +109,7 @@ public class BoardService {
 
     //* 내 글 조회
     public List<BoardResponse> getMyBoards(int userId) {
-        List<Board> boards = boardRepository.findByUserId(userId); //* user_id가 userId인 글만
+        List<Board> boards = boardRepository.findByUserIdAndIsDeletedFalse(userId); //* user_id가 userId인 글만
 
         //* 1. List<BoardResponse> 형태의 빈 리스트 생성
         List<BoardResponse> boardResponses = new ArrayList<>();
@@ -189,7 +193,12 @@ public class BoardService {
             throw new AuthorizationFailureException("게시글 작업 권한이 없습니다.");
         }
 
-        boardRepository.deleteById(id); // 성공한 경우를 안쪽에.
+//        boardRepository.deleteById(id); // 물리 삭제
+
+        //* 논리 삭제
+        board.setDeleted(true);
+        boardRepository.save(board);
+
     }
 
     public void pressLike(int id, int userId) {

@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Integer> { // Jpa는 무조건 Boards class로만 받게 되어 있음.
-    List<Board> findByUserId(int userId);
-    Page<Board> findAll(Pageable pageable);
+    List<Board> findByUserIdAndIsDeletedFalse(int userId);
+    Page<Board> findByIsDeletedFalse(Pageable pageable);
 }

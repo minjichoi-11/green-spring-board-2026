@@ -6,6 +6,7 @@ import com.green.spring_board.dto.SignupRequest;
 import com.green.spring_board.dto.UserUpdateRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.*;
+import com.green.spring_board.global.UserState;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,7 @@ public class UserService {
         user.setEmail(signupRequest.getEmail());
         user.setPassword(hashedPassword); //* 암호화된 비밀번호 저장
         user.setNickname(signupRequest.getNickname());
+        user.setState(UserState.ACTIVE);
 
         userRepository.save(user);
     }
@@ -53,6 +55,11 @@ public class UserService {
             throw new ResourceNotFoundException("User not found");
         }
         User user = userOptional.get(); //? 이 이메일의 사용자 정보
+        //?
+
+        if (user.getState() == UserState.QUITIED) {
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
 
         //* 2. 비밀번호가 올바른지 확인
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
@@ -79,6 +86,11 @@ public class UserService {
         User user = userOptional.get();
 
         //* 3. 유저 아이디로 DB 조회함
+        //*
+
+        if (user.getState() == UserState.QUITIED) {
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
 
         //* 4. DB에서 이 유저의 닉네임과 이메일을 받아옴(실제 유저 객체를 꺼냄)
         String email = user.getEmail();
@@ -102,6 +114,10 @@ public class UserService {
 
         //? 실제 유저 객체를 꺼냄
         User user = userOptional.get();
+
+        if (user.getState() == UserState.QUITIED) {
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
 
         //* [핵심] 사용자가 보낸 이메일 값이 null이 아니고 공백이 아닐 때만 덮어쓴다.
         // 이메일
@@ -131,6 +147,10 @@ public class UserService {
             throw new AuthorizationFailureException("본인만 탈퇴할 수 있습니다.");
         }
         userRepository.delete(user);
+
+        user.setState(UserState.QUITIED);
+        userRepository.save(user);
+
     }
 
 }
