@@ -1,4 +1,4 @@
-package security;
+package com.green.spring_board.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +20,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
-    private final JwtAuthenticationEntryPrint authenticationEntryPrint;
+    private final JwtAuthenticationEntryPoint authenticationEntryPrint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = tokenProvider.getUsernameFromToken(token);
                 UserDetails userDetails = null;
                 try {
-                    userDetailsService.loadUserByUsername(username);
+                    userDetails = userDetailsService.loadUserByUsername(username);
                 }  catch (UsernameNotFoundException e) {
                     authenticationEntryPrint.commence(request, response, e);
                     return;

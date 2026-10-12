@@ -1,4 +1,4 @@
-package security;
+package com.green.spring_board.security;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

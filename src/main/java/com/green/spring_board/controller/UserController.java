@@ -44,18 +44,14 @@ public class UserController {
         }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Integer>> login(
-            @Valid @RequestBody LoginRequest loginRequest,
-            HttpServletRequest httpServletRequest
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest loginRequest
+
     ){
         //* DTO Vaild
-            int userId = userService.login(loginRequest);
+            LoginResponse result = userService.login(loginRequest);
 
-            HttpSession session = httpServletRequest.getSession();
-            httpServletRequest.changeSessionId();
-            session.setAttribute("userId", userId);
-
-            return ResponseEntity.ok(ApiResponse.ok(userId));
+            return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     @GetMapping("/me")

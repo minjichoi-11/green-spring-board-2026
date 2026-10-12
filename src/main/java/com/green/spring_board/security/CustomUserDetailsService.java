@@ -1,4 +1,4 @@
-package security;
+package com.green.spring_board.security;
 
 import com.green.spring_board.entity.User;
 import com.green.spring_board.global.UserState;
