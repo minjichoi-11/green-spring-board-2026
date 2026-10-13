@@ -8,6 +8,7 @@ import com.green.spring_board.global.UserState;
 import com.green.spring_board.repository.RefreshTokenRepository;
 import com.green.spring_board.repository.UserRepository;
 import com.green.spring_board.security.JwtTokenProvider;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -113,11 +114,43 @@ public class UserService {
         return new LoginResponse(accessToken, refreshToken);
     }
 
+    public RefreshResponse refresh(@Valid RefreshRequest refreshRequest) {
+        String userRefreshToken = refreshRequest.getRefreshToken();
+        //* 1. 리프레시 토큰 위변조 여부 검증
+        if (!tokenProvider.validRefreshToken(userRefreshToken)) {
+            // 검증 실패 예외처리
+            throw new UnauthenticatedException("만료되었거나 유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        //* 2. DB 내 존재하는 리프레시 토큰까지 검증
+        Optional<RefreshToken> optionalRT = refreshTokenRepository.findByToken(userRefreshToken);
+        if (optionalRT.isEmpty()) {
+            throw new UnauthenticatedException("유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        //* 3. 해당 리프레시 토큰이 인증되지 않았는지 검증
+        if (!optionalRT.get().getExpirationDateTime().isAfter(LocalDateTime.now())) {
+            throw new UnauthenticatedException("만료된 리프레시 토큰입니다.");
+        }
+
+        //* 4. 토큰 내 유저네임의 유저 정보가 유효한지 검증
+        //* 해당 유저가 존재하는지, 활성화 상태인지(탈퇴하지는 않았는지) 검증
+        String username = tokenProvider.getUsernameFromToken(userRefreshToken);
+        User user = userRepository.findByUsername(username);
+        if (user == null || user.getState() != (UserState.ACTIVE)) {
+            throw new UnauthenticatedException("인증할 수 없는 계정입니다.");
+        }
+
+        String accessToken = tokenProvider.generateAccessToken(username);
+
+        return new RefreshResponse(accessToken);
+    }
+
     public MyInfoResponse getUserInfo(int userId) {
         //* 유저 아이디로 DB 조회. 변수 이름: userOptional
         Optional<User> userOptional = userRepository.findById(userId);
         // DB에 가서 Optional을 하나 가져옴
-        // 여기에는 유정 정보가 들어 있을 수도, 주소를 잘못 찾았다면 빈 상자일 수도 있다.
+        // 여기에는 유저 정보가 들어 있을 수도, 주소를 잘못 찾았다면 빈 상자일 수도 있다.
         // 그래서 아직은 유저 안의 정보를 바로 쓸 수 없다.
 
         //* 존재하지 않는 유저라면 예외 발생
@@ -196,4 +229,7 @@ public class UserService {
 
     }
 
+    public RefreshResponse refresh() {
+        return null;
+    }
 }

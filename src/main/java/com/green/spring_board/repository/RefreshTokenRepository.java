@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Integer> {
-    List<RefreshToken> findByUserId(Integer id);
+    List<RefreshToken> findByUserId(Integer userId);
     void deleteByUserId(Integer userId);
     Optional<RefreshToken> findByToken(String token);
 }

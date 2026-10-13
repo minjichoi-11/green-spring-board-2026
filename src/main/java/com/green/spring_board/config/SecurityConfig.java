@@ -54,14 +54,18 @@ public class SecurityConfig {
                                 .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        //* 로그인 회원가입 허용
+                        //* 로그인 회원가입 토큰재발급 허용
                                 .requestMatchers(
-                                        "/api/user/signup", "/api/user/login"
+                                        "/api/user/signup",
+                                        "/api/user/login",
+                                        "/api/user/refresh"
                                 ).permitAll()
 
                         //* swagger URL 허용
                         .requestMatchers(
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated() // 나머지 모든 요청 인증 필요
                 ).addFilterBefore(jwtAuthenticationFilter,
