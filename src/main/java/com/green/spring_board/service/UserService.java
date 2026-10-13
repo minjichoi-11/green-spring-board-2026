@@ -1,20 +1,21 @@
 package com.green.spring_board.service;
 
 import com.green.spring_board.dto.*;
+import com.green.spring_board.entity.AccessTokenBlacklist;
 import com.green.spring_board.entity.RefreshToken;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.*;
 import com.green.spring_board.global.UserState;
+import com.green.spring_board.repository.AccessTokenBlacklistRepository;
 import com.green.spring_board.repository.RefreshTokenRepository;
 import com.green.spring_board.repository.UserRepository;
 import com.green.spring_board.security.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     public void signup(SignupRequest signupRequest) {
         //* 이메일과 비밀번호가 공백이 아닌지 확인
@@ -112,6 +115,26 @@ public class UserService {
 
         //* 3. 로그인 성공
         return new LoginResponse(accessToken, refreshToken);
+    }
+
+    public void logout(String accessToken) {
+        //* 1. 해당 사용자의 리프레시 토큰 무효화
+        //* - DB에서 해당 사용자의 리프레시 토큰을 지운다.
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username);
+        List<RefreshToken> tokens = refreshTokenRepository.findByUserId(user.getId());
+        refreshTokenRepository.deleteAll(tokens);
+
+        //* 2. 해당 사용자의 액세스 토큰 무효화
+        //*
+        //*
+        Date expiration = tokenProvider.getExpiration(accessToken);
+        LocalDateTime convertedDateTime = expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        AccessTokenBlacklist accessTokenBlacklist = new AccessTokenBlacklist();
+        accessTokenBlacklist.setToken(accessToken);
+        accessTokenBlacklist.setExpirationDateTime(convertedDateTime);
+        accessTokenBlacklistRepository.save(accessTokenBlacklist);
     }
 
     public RefreshResponse refresh(@Valid RefreshRequest refreshRequest) {

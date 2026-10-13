@@ -76,16 +76,13 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            HttpServletRequest request
+            @RequestHeader("Authorization") String authorization
+
     ){
-        HttpSession session = request.getSession(false);
+        String accessToken = authorization.substring(7);
+        userService.logout(accessToken);
 
-        if(session == null || session.getAttribute("userId") == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        session.invalidate();
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @PostMapping("/refresh")
