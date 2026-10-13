@@ -1,9 +1,11 @@
 package com.green.spring_board.service;
 
 import com.green.spring_board.dto.*;
+import com.green.spring_board.entity.RefreshToken;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.*;
 import com.green.spring_board.global.UserState;
+import com.green.spring_board.repository.RefreshTokenRepository;
 import com.green.spring_board.repository.UserRepository;
 import com.green.spring_board.security.JwtTokenProvider;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -23,6 +28,7 @@ import java.util.Optional;
 public class UserService {
     //* 암호화 객체 생성
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
@@ -83,10 +89,26 @@ public class UserService {
 //        }
 
         //* 액세스 토큰 발급
-        String accessToken = tokenProvider.generateAccessToken(user.getUsername());
+        String accessToken = tokenProvider.generateAccessToken(loginRequest.getUsername());
+        String refreshToken = tokenProvider.generateRefreshToken(loginRequest.getUsername());
+
+        //* 1. 해당 유저의 기존 리프레시 토큰(들) 삭제
+        refreshTokenRepository.deleteByUserId(user.getId());
+
+        //* 2. 해당 유저의 신규 리프레시 토큰 저장
+        Date expiration = tokenProvider.getExpiration(refreshToken);
+        LocalDateTime expirationDateTime = expiration.toInstant().atZone(
+                ZoneId.systemDefault()
+        ).toLocalDateTime();
+
+        RefreshToken refresh =  new RefreshToken();
+        refresh.setUser(user);
+        refresh.setToken(refreshToken);
+        refresh.setExpirationDateTime(expirationDateTime);
+        refreshTokenRepository.save(refresh);
 
         //* 3. 로그인 성공
-        return new LoginResponse(accessToken);
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public MyInfoResponse getUserInfo(int userId) {
