@@ -36,8 +36,7 @@ public class UserController {
     @Operation(summary = "회원가입 API", description = "회원가입을 할 때 씀")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(
-            @Valid @RequestBody SignupRequest signupRequest,
-            HttpServletRequest httpServletRequest
+            @Valid @RequestBody SignupRequest signupRequest
     ) {
         userService.signup(signupRequest); // 실패하면 서비스에서 예외를 던짐.
         return ResponseEntity.ok(ApiResponse.ok());

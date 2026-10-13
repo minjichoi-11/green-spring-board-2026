@@ -60,8 +60,10 @@ public class UserService {
         User user = new User();
         user.setUsername(signupRequest.getUsername());
         user.setPassword(hashedPassword); //* 암호화된 비밀번호 저장
+        user.setEmail(signupRequest.getEmail());
         user.setNickname(signupRequest.getNickname());
         user.setState(UserState.ACTIVE);
+
 
         userRepository.save(user);
     }
@@ -133,7 +135,7 @@ public class UserService {
 
         AccessTokenBlacklist accessTokenBlacklist = new AccessTokenBlacklist();
         accessTokenBlacklist.setToken(accessToken);
-        accessTokenBlacklist.setExpirationDateTime(convertedDateTime);
+        accessTokenBlacklist.setExpirationDate(convertedDateTime);
         accessTokenBlacklistRepository.save(accessTokenBlacklist);
     }
 

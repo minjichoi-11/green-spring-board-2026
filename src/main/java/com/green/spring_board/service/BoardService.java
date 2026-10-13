@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class BoardService {
     private LikeRepository likeRepository;
 
     //* 전체 조회
+    @Transactional(readOnly = true) //! 조회할 때만 readOnly 사용
     public Page<BoardResponse> getAllBoards(int page, int size, String order) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -79,6 +81,7 @@ public class BoardService {
     }
 
     //* 상세 조회
+    @Transactional(readOnly = true)
     public BoardResponse getBoard(int id) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -115,6 +118,7 @@ public class BoardService {
     }
 
     //* 내 글 조회
+    @Transactional(readOnly = true)
     public List<BoardResponse> getMyBoards() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -144,6 +148,7 @@ public class BoardService {
     }
 
     //* 삽입
+    @Transactional
     public int createBoard(BoardCreateRequest boardCreateRequest) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -166,7 +171,9 @@ public class BoardService {
 
     }
 
+
     //? 수정
+    @Transactional
     public void updateBoard(int id, BoardUpdateRequest boardCreateRequest) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -195,6 +202,8 @@ public class BoardService {
         boardRepository.save(board);
     }
 
+    //? 삭제
+    @Transactional
     public void deleteBoard(int id) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -216,6 +225,8 @@ public class BoardService {
 
     }
 
+    //? 좋아요
+    @Transactional
     public void pressLike(int id) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = userRepository.findByUsername(username).getId();
@@ -257,6 +268,7 @@ public class BoardService {
 
     }
 
+    @Transactional
     public LikeDetailResponse getLikeDetail(int id) {
 
         //* 1. 이 게시글의 좋아요 누른 유저 정보들을 Like 테이블에서 싹 가져옴
@@ -274,4 +286,35 @@ public class BoardService {
         return likeDetailResponse;
     }
 
+    @Transactional(readOnly = true)
+    public List<BoardResponse> search(String keyword) {
+
+        // 1. 패치 조인으로 게시글과 작성자(User)를 한 번에 조회 (쿼리 1번)
+        List<Board> boards = boardRepository.searchByTitle(keyword);
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username);
+
+        List<Integer> likeBoardIds = likeRepository.findLikeBoardIdsByUserId(user.getId());
+
+        List<BoardResponse> response = new ArrayList<>();
+        for (Board board : boards) {
+            BoardResponse newBoard = new BoardResponse(
+                    board.getId(),
+                    board.getTitle(),
+                    board.getContent(),
+                    board.getHits(),
+                    board.getLikeCount(),
+                    likeBoardIds.contains(board.getId()),
+                    board.getUser().getId(),
+                    board.getUser().getNickname(),
+                    board.getCreatedDatetime(),
+                    board.getUpdatedDatetime()
+
+            );
+
+            response.add(newBoard);
+        }
+        return response;
+    }
 }

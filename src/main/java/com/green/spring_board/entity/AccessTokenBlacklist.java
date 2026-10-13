@@ -24,5 +24,5 @@ public class AccessTokenBlacklist {
     private String token;
 
     @Column(name = "expiration_datetime", nullable = false)
-    private LocalDateTime expirationDateTime;
+    private LocalDateTime expirationDate;
 }
