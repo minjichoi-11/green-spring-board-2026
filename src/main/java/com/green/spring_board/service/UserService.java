@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -93,7 +94,8 @@ public class UserService {
         String refreshToken = tokenProvider.generateRefreshToken(loginRequest.getUsername());
 
         //* 1. 해당 유저의 기존 리프레시 토큰(들) 삭제
-        refreshTokenRepository.deleteByUserId(user.getId());
+        List<RefreshToken> tokens = refreshTokenRepository.findByUserId(user.getId());
+        refreshTokenRepository.deleteAll();
 
         //* 2. 해당 유저의 신규 리프레시 토큰 저장
         Date expiration = tokenProvider.getExpiration(refreshToken);
