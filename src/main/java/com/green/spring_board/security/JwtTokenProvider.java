@@ -19,10 +19,10 @@ public class JwtTokenProvider {
 
 
     //* 액세스 토큰의 유효 기간 (밀리초)
-    public static final long REFRESH_TOKEN_VALIDITY = 1000 * 60 * 60; // 1시간
+    public static final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 60; // 1시간
 
     //* 리프레시 토큰의 유효 기간 (밀리초)
-    private static final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 60 * 24 * 7; // 7일
+    private static final long REFRESH_TOKEN_VALIDITY = 1000 * 60 * 60 * 24 * 7; // 7일
 
     public JwtTokenProvider(
             @Value("${spring.jwt.secret}") String secretKey // 서버의 환경 설정 파일에 안전하게 숨겨든 비밀키 문자열을 가져온다.
