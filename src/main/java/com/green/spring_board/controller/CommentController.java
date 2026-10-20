@@ -27,18 +27,10 @@ public class CommentController {
     @PostMapping("/board/{id}/comment") //* 예를 들어, 1번 게시글의 댓글을 작성(postmapping)
     public ResponseEntity<ApiResponse<Void>> createComment(
             @PathVariable int id,
-            @RequestBody CommentRequest commentRequest,
-            HttpServletRequest httpServletRequest
+            @RequestBody CommentRequest commentRequest
     ) {
 
-        HttpSession session = httpServletRequest.getSession(false);
-
-        if(session == null || session.getAttribute("userId") == null) {
-            throw new UnauthenticatedException("로그인이 필요합니다.");
-        }
-        int userId = (int) session.getAttribute("userId");
-
-        commentService.createComment(commentRequest, userId, id);
+        commentService.createComment(commentRequest, id);
 
         return ResponseEntity.ok(ApiResponse.ok());
 

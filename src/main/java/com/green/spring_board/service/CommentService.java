@@ -12,6 +12,7 @@ import com.green.spring_board.repository.BoardRepository;
 import com.green.spring_board.repository.CommentRepository;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,9 +30,10 @@ public class CommentService {
     //* 댓글 작성
     public void createComment(
             CommentRequest CommentRequest,
-            int userId,
             int boardId
     ) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        int userId = userRepository.findByUsername(username).getId();
         Optional<User> userOptional = userRepository.findById(userId);
         Optional<Board> boardOptional = boardRepository.findById(boardId);
 
