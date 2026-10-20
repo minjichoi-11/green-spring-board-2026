@@ -46,7 +46,7 @@ public class BoardController {
     ){
         int userId = -1; // 비회원일 때 기본값 설정
 
-        BoardResponse board = boardService.getBoard(userId);
+        BoardResponse board = boardService.getBoard(id);
         return ResponseEntity.ok(
                 ApiResponse.ok(board)
         );
