@@ -12,15 +12,14 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-    private UserRepository userRepository;
-
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        //* 유저 네임을 전달 받아 DB 내에 존재하는지 확인한다.
+        // 유저 네임을 전달 받아 DB 내에 존재하는지 확인한다.
         User user = userRepository.findByUsername(username);
 
-        //* 해당 유저를 찾을 수 없는 경우
+        // 해당 유저를 찾을 수 없는 경우
         if (user == null) {
             throw new UsernameNotFoundException(username);
         }
@@ -33,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-//                .authorities(user.getRole.toString())
+//                .authorities(user.getRole().toString())
                 .build();
     }
 }

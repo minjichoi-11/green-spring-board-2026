@@ -11,7 +11,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class LikeDetailResponse {
-    private List<String> likeUserNames;
+    private List<String> likedUserNames;
 }

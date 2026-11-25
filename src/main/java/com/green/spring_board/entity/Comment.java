@@ -14,27 +14,25 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable =  false)
+    @Column(nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY) // DB의 board_id 외래키와 매핑
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
-
-    @ManyToOne(fetch = FetchType.LAZY) // DB의 user_id 외래키와 매핑
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, insertable = false, updatable = false) // updatable = false -> 생성 일시의 무결성 유지
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+
+    @Column(nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdDatetime;
 
     @Column(nullable = false)
     private boolean isDeleted;
-
 }

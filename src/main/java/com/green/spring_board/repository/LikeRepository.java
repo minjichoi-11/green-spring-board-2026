@@ -12,11 +12,11 @@ import java.util.Optional;
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Integer> {
     Optional<Like> findByUserIdAndBoardId(int userId, int boardId);
-
-    //* 로그인한 내가 이 글에 좋아요를 눌렀는지 여부 판단
     boolean existsByUserIdAndBoardId(int userId, int boardId);
     List<Like> findByBoardId(int boardId);
 
+    // JPQL를 이용해 해당 메서드가 실행할 쿼리 직접 명시
+    // 메서드 이름만으로 표현하기 어려운 복잡한 쿼리가 필요한 경우 사용
     @Query("SELECT l.board.id FROM Like l WHERE l.user.id = :userId")
-    List<Integer> findLikeBoardIdsByUserId(@Param("userId") int userId);
+    List<Integer> findLikedBoardIdsByUserId(@Param("userId") int userId);
 }

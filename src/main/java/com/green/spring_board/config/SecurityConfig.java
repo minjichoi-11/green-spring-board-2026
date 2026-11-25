@@ -1,25 +1,24 @@
 package com.green.spring_board.config;
 
+import com.green.spring_board.security.JwtAccessDeniedHandler;
+import com.green.spring_board.security.JwtAuthenticationEntryPoint;
+import com.green.spring_board.security.JwtAuthenticationFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import com.green.spring_board.security.JwtAccessDeniedHandler;
-import com.green.spring_board.security.JwtAuthenticationEntryPoint;
-import com.green.spring_board.security.JwtAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
@@ -46,9 +45,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(
+                "http://127.0.0.1:8000",
+                "http://localhost:8000"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
@@ -57,53 +71,30 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exceptions ->
                         exceptions
-                                .authenticationEntryPoint(authenticationEntryPoint)
-                                .accessDeniedHandler(accessDeniedHandler)
+                            .authenticationEntryPoint(authenticationEntryPoint)
+                            .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        //* 로그인 회원가입 토큰재발급 허용
-                                .requestMatchers(
-                                        "/api/user/signup",
-                                        "/api/user/login",
-                                        "/api/user/refresh"
-                                ).permitAll()
-
-                        //* swagger URL 허용
+                        // 로그인 회원가입 토큰재발급 허용
+                        .requestMatchers(
+                                "/api/user/signup",
+                                "/api/user/login",
+                                "/api/user/refresh"
+                        ).permitAll()
+                        // Swagger URL 허용
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .anyRequest().authenticated() // 나머지 모든 요청 인증 필요
-                ).addFilterBefore(jwtAuthenticationFilter,
+                        // ALB 헬스 체크 허용
+                        .requestMatchers("/actuator/health").permitAll()
+                        .anyRequest().authenticated() //나머지 모든 요청은 인증 필요
+                ).addFilterBefore(
+                        jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
 
         return http.build();
     }
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5500",
-                "http://127.0.0.1:5500"
-        ));
-
-        config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-
-        config.setAllowedHeaders(List.of("*"));
-
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
-    }
 }
-

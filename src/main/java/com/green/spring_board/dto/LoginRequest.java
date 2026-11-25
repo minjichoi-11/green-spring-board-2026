@@ -10,9 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class LoginRequest {
-    @NotBlank //* null 또는 빈 문자열 방지
+    @NotBlank // null 또는 빈 문자열 방지 (공백으로 이루어진 데이터도 빈 값으로 간주)
     private String username;
     @NotBlank
     private String password;

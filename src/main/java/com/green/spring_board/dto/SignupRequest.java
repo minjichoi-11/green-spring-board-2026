@@ -12,7 +12,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class SignupRequest {
     @NotBlank
     @Size(max = 30)
@@ -21,7 +20,7 @@ public class SignupRequest {
     @NotBlank
     @Email // 이메일 형식인지 검증
     @Size(max = 100)
-    private String email; // 메일은 어떤 형식으로 규제해야 할까? @가 포함되어야 함.
+    private String email;
 
     @NotBlank
     @Size(min = 6)
@@ -30,5 +29,4 @@ public class SignupRequest {
     @NotBlank
     @Size(max = 30)
     private String nickname;
-
 }

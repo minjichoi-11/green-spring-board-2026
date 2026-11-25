@@ -9,7 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class MyInfoResponse {
     private String email;
     private String nickname;

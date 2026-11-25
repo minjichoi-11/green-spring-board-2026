@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class CommentResponse {
     private int commentId;
     private String nickname;

@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class AccessTokenBlacklist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,5 +23,5 @@ public class AccessTokenBlacklist {
     private String token;
 
     @Column(name = "expiration_datetime", nullable = false)
-    private LocalDateTime expirationDate;
+    private LocalDateTime expirationDateTime;
 }

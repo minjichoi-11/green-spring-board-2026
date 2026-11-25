@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +34,6 @@ public class Board {
     @Column(nullable = false, insertable = false, updatable = false)
     private LocalDateTime updatedDatetime;
 
-    //* user(userID) -> profile(user_id)
-    //* 1 : 1
-    //* board <-> user
-    //* n : 1
-    //* n : m
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

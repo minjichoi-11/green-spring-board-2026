@@ -24,7 +24,7 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
-    private final JwtAuthenticationEntryPoint authenticationEntryPrint;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     @Override
@@ -34,11 +34,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            //* 토큰 위변조 여부 검사
-            if (tokenProvider.validAccessToken(token)) {
-                Optional<AccessTokenBlacklist> OptionalATB = accessTokenBlacklistRepository.findByToken(token);
-                if (OptionalATB.isPresent()) {
-                    authenticationEntryPrint.commence(
+            // 토큰 위/변조 여부 검사
+            if(tokenProvider.validateAccessToken(token)) {
+                Optional<AccessTokenBlacklist> optionalATB = accessTokenBlacklistRepository.findByToken(token);
+                if (optionalATB.isPresent()){
+                    authenticationEntryPoint.commence(
                             request,
                             response,
                             new BadCredentialsException("무효화된 액세스 토큰입니다.")
@@ -47,24 +47,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 String username = tokenProvider.getUsernameFromToken(token);
-                UserDetails userDetails = null;
+                UserDetails userDetails;
                 try {
                     userDetails = userDetailsService.loadUserByUsername(username);
-                }  catch (UsernameNotFoundException e) {
-                    authenticationEntryPrint.commence(request, response, e);
+                } catch (UsernameNotFoundException e) {
+                    authenticationEntryPoint.commence(request, response, e);
                     return;
                 }
 
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
+                          userDetails,
+                          null,
+                          userDetails.getAuthorities()
                         );
+
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }
